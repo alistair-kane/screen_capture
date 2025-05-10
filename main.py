@@ -51,9 +51,9 @@ class OverlayWindow(QtWidgets.QWidget):
 	def paintEvent(self, e):
 		painter = QtGui.QPainter(self)
 		pen   = QtGui.QPen(QtGui.QColor(0, 200, 0, 180), 3)
-		brush = QtGui.QBrush(QtGui.QColor(0, 200, 0, 60))
+		# brush = QtGui.QBrush(QtGui.QColor(0, 200, 0, 60))
 		painter.setPen(pen)
-		painter.setBrush(brush)
+		# painter.setBrush(brush)
 		for r in self.regions:
 			painter.drawRect(r['left'], r['top'], r['width'], r['height'])
 
