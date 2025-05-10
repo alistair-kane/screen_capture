@@ -87,7 +87,7 @@ def find_windows(title):
 			})
 	return rects
 
-def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_title: str):
+def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_title: str, output_prefix: str):
 	sct = mss()
 	video_writers = [None] * 10  # preallocate for 10 windows
 	while not stop_event.is_set():
@@ -102,7 +102,7 @@ def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_tit
 					# print("rect:", union_rect)
 					fourcc   = cv2.VideoWriter_fourcc(*'mp4v')
 					timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-					filename  = f"capture_{i}_{timestamp}.mp4"
+					filename  = f"{output_prefix}capture_{i}_{timestamp}.mp4"
 					#handle macOS retina display scaling
 					if SYSTEM_OS == 'darwin':
 						w = int(w * 2)
@@ -110,7 +110,7 @@ def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_tit
 					video_writers[i] = cv2.VideoWriter(
 						filename, fourcc, CAPTURE_FPS, (w, h)
 					)
-					print(f"Recording to {filename} @ {CAPTURE_FPS} FPS...")
+					print(f"Recording to {output_prefix}{filename} @ {CAPTURE_FPS} FPS...")
 				# grab the region
 				frame = np.array(sct.grab(rect))
 				# MSS gives BGRA; drop alpha and convert to BGR
@@ -130,12 +130,16 @@ if __name__ == "__main__":
 		"--title", type=str, default='VLC',
 		help="Window title to capture (default: Calculator)"
 	)
+	parser.add_argument(
+		"--output", type=str, default='',
+		help="Output file destination prefix (default: current directory)"
+	)
 	args = parser.parse_args()
 
 	app = QtWidgets.QApplication(sys.argv)
 	stop_event = threading.Event()
 	overlay = OverlayWindow(stop_event)
-	capture_thread = threading.Thread(target=capture_loop, args=(overlay, stop_event, args.title))
+	capture_thread = threading.Thread(target=capture_loop, args=(overlay, stop_event, args.title, args.output))
 	print("Starting capture thread...")
 	capture_thread.start()
 	sys.exit(app.exec_())
