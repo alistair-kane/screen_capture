@@ -102,7 +102,7 @@ def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_tit
 					# print("rect:", union_rect)
 					fourcc   = cv2.VideoWriter_fourcc(*'mp4v')
 					timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-					filename  = f"capture_{timestamp}.mp4"
+					filename  = f"capture_{i}_{timestamp}.mp4"
 					#handle macOS retina display scaling
 					if SYSTEM_OS == 'darwin':
 						w = int(w * 2)
