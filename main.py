@@ -56,6 +56,13 @@ class OverlayWindow(QtWidgets.QWidget):
 		# painter.setBrush(brush)
 		for r in self.regions:
 			painter.drawRect(r['left'], r['top'], r['width'], r['height'])
+			
+			# Add text inside the rectangle showing left, top, width values
+			text = f"({r['left']}, {r['top']}, {r['width']})"
+			font = QtGui.QFont("Arial", 10)
+			painter.setFont(font)
+			painter.setPen(QtGui.QColor(255, 255, 255))  # White text
+			painter.drawText(r['left'] + 5, r['top'] + 20, text)  # Offset for padding
 
 	def closeEvent(self, event):
 		print("Closing overlay window...")
