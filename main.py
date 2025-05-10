@@ -50,10 +50,8 @@ class OverlayWindow(QtWidgets.QWidget):
 
 	def paintEvent(self, e):
 		painter = QtGui.QPainter(self)
-		pen   = QtGui.QPen(QtGui.QColor(0, 200, 0, 180), 3)
-		# brush = QtGui.QBrush(QtGui.QColor(0, 200, 0, 60))
+		pen = QtGui.QPen(QtGui.QColor(0, 200, 0, 180), 3)
 		painter.setPen(pen)
-		# painter.setBrush(brush)
 		for r in self.regions:
 			painter.drawRect(r['left'], r['top'], r['width'], r['height'])
 			
@@ -61,7 +59,7 @@ class OverlayWindow(QtWidgets.QWidget):
 			text = f"({r['left']}, {r['top']}, {r['width']})"
 			font = QtGui.QFont("Arial", 10)
 			painter.setFont(font)
-			painter.setPen(QtGui.QColor(255, 255, 255))  # White text
+			# painter.setPen(QtGui.QColor(255, 255, 255))  # White text
 			painter.drawText(r['left'] + 5, r['top'] + 20, text)  # Offset for padding
 
 	def closeEvent(self, event):
