@@ -89,59 +89,42 @@ def find_windows(title):
 
 def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_title: str):
 	sct = mss()
-	video_writer = None
-	union_rect = None
-	# i = 0
-	# while i < 100:
+	video_writers = [None]
 	while not stop_event.is_set():
 		rects = find_windows(target_title)
 		overlay.update_regions(rects)
-
 		if rects:
-			# compute union of all matched windows
-			lefts  = [r['left'] for r in rects]
-			tops   = [r['top']  for r in rects]
-			rights = [r['left'] + r['width']  for r in rects]
-			bots   = [r['top']  + r['height'] for r in rects]
-
-			left, top     = min(lefts), min(tops)
-			right, bot    = max(rights), max(bots)
-			w, h          = int(right - left), int(bot - top)
-			union_rect    = {'left': left, 'top': top, 'width': w, 'height': h}
-
-			# lazily initialize VideoWriter once we know size
-			if video_writer is None:
-				print("rect:", union_rect)
-				fourcc   = cv2.VideoWriter_fourcc(*'mp4v')
-				# timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-				# filename  = f"capture_{timestamp}.mp4"
-				filename  = f"capture.mp4"
-				#handle macOS retina display scaling
-				if SYSTEM_OS == 'darwin':
-					w = int(w * 2)
-					h = int(h * 2)
-				video_writer = cv2.VideoWriter(
-					filename, fourcc, CAPTURE_FPS, (w, h)
-				)
-				print(f"Recording to {filename} @ {CAPTURE_FPS} FPS...")
-
-			# grab the union region
-			frame = np.array(sct.grab(union_rect))
-			# MSS gives BGRA; drop alpha and convert to BGR
-			bgr   = cv2.cvtColor(frame[..., :3], cv2.COLOR_RGB2BGR)
-			video_writer.write(bgr)
-
-		# i += 1
-		# print(f"Captured frame {i}...")
+			for i,r in enumerate(rects):
+				w, h = r['width'], r['height']
+				rect = {'left': r['left'], 'top': r['top'], 'width': w, 'height': h}
+				# lazily initialize VideoWriter once we know size
+				if video_writers[i] is None:
+					# print("rect:", union_rect)
+					fourcc   = cv2.VideoWriter_fourcc(*'mp4v')
+					timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+					filename  = f"capture_{timestamp}.mp4"
+					#handle macOS retina display scaling
+					if SYSTEM_OS == 'darwin':
+						w = int(w * 2)
+						h = int(h * 2)
+					video_writers[i] = cv2.VideoWriter(
+						filename, fourcc, CAPTURE_FPS, (w, h)
+					)
+					print(f"Recording to {filename} @ {CAPTURE_FPS} FPS...")
+				# grab the region
+				frame = np.array(sct.grab(rect))
+				# MSS gives BGRA; drop alpha and convert to BGR
+				bgr   = cv2.cvtColor(frame[..., :3], cv2.COLOR_RGB2BGR)
+				video_writers[i].write(bgr)
 		time.sleep(CAPTURE_INTERVAL)
 
 	print("Stopping capture...")
-	if video_writer:
-		video_writer.release()
-		print("Recording finished and file closed.")
+	for video_writer in video_writers:
+		if video_writer is not None:
+			video_writer.release()
+			print("Recording finished and file closed.")
 
-
-def main():
+if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Screen capture application.")
 	parser.add_argument(
 		"--title", type=str, default='VLC',
@@ -155,9 +138,4 @@ def main():
 	capture_thread = threading.Thread(target=capture_loop, args=(overlay, stop_event, args.title))
 	print("Starting capture thread...")
 	capture_thread.start()
-
 	sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-	main()
