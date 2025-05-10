@@ -78,7 +78,7 @@ def find_windows(title):
 			if any(r['left'] == w.left and r['top'] == w.top for r in rects):
 				continue
 			# skip top corner windows (windows bug)
-			if w.left <= 1 and w.top <= 1:
+			if w.left <= 1 or w.top <= 1:
 				continue
 			rects.append({
 				'left':   w.left,
