@@ -89,7 +89,7 @@ def find_windows(title):
 
 def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_title: str):
 	sct = mss()
-	video_writers = [None]
+	video_writers = [None] * 10  # preallocate for 10 windows
 	while not stop_event.is_set():
 		rects = find_windows(target_title)
 		overlay.update_regions(rects)
