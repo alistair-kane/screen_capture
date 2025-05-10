@@ -70,6 +70,8 @@ def find_windows(title):
 		for w in gw.getWindowsWithTitle(title):
 			if not w.visible or w.isMinimized:
 				continue
+			if any(r['left'] == w.left and r['top'] == w.top for r in rects):
+				continue
 			rects.append({
 				'left':   w.left,
 				'top':    w.top,
@@ -127,7 +129,7 @@ def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_tit
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Screen capture application.")
 	parser.add_argument(
-		"--title", type=str, default='VLC',
+		"--title", type=str, default='Calculator',
 		help="Window title to capture (default: Calculator)"
 	)
 	parser.add_argument(
