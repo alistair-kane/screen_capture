@@ -68,7 +68,7 @@ def find_windows(title):
 	rects = []
 	if SYSTEM_OS == 'win32':
 		for w in gw.getWindowsWithTitle(title):
-			if not w.isVisible or w.isMinimized:
+			if not w.visible or w.isMinimized:
 				continue
 			rects.append({
 				'left':   w.left,
