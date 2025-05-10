@@ -78,7 +78,7 @@ def find_windows(title):
 			if any(r['left'] == w.left and r['top'] == w.top for r in rects):
 				continue
 			# skip the first window if it is at (0,0)
-			if any(r['left'] <= 0 or r['top'] <= 0 for r in rects):
+			if any(r['left'] <= 5 or r['top'] <= 5 for r in rects):
 				continue
 			rects.append({
 				'left':   w.left,
