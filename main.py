@@ -90,6 +90,8 @@ def find_windows(title):
 			w = wc.window
 			if not w.isMinimized:
 				append_window(rects, w)
+	#order the rects to prevent flickering between windows
+	rects.sort(key=lambda r: (r['top'], r['left']))
 	return rects
 
 def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_title: str, output_prefix: str):
