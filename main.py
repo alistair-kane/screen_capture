@@ -1,13 +1,16 @@
+import argparse
+import cv2
+import datetime
+from mss import mss
+import numpy as np
+from PyQt5 import QtWidgets, QtCore, QtGui
 import sys
 import time
 import threading
-import datetime
 
-from mss import mss
-import numpy as np
-import cv2
-
-SYSTEM_OS = sys.platform
+SYSTEM_OS        = sys.platform
+CAPTURE_FPS      = 60
+CAPTURE_INTERVAL = 1.0 / CAPTURE_FPS
 
 if SYSTEM_OS == 'darwin':
 	from windowcapture import WindowCapture
@@ -20,17 +23,9 @@ elif SYSTEM_OS == 'win32':
 else:
 	raise RuntimeError("Unsupported OS. This script only supports macOS (darwin) and Windows (win32).")
 
-from PyQt5 import QtWidgets, QtCore, QtGui
-import argparse
-
-CAPTURE_FPS      = 15               # desired capture frame-rate
-CAPTURE_INTERVAL = 1.0 / CAPTURE_FPS
-
 class OverlayWindow(QtWidgets.QWidget):
 	def __init__(self, stop_event):
-		super().__init__(flags=QtCore.Qt.FramelessWindowHint
-						  | QtCore.Qt.WindowStaysOnTopHint)
-						#   | QtCore.Qt.TransparentForMouseEvents)
+		super().__init__(flags=QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
 		self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 		self.setAttribute(QtCore.Qt.WA_TransparentForMouseEvents, True)
 		self.regions = []
@@ -68,6 +63,19 @@ class OverlayWindow(QtWidgets.QWidget):
 		self.stop_event.set()
 		event.accept()
 
+def append_window(rects, w):
+	if any(r['left'] == w.left and r['top'] == w.top for r in rects):
+		return
+	# skip left edge windows
+	if w.left <= 1 or w.top <= 1:
+		return
+	rects.append({
+		'left':   w.left,
+		'top':    w.top,
+		'width':  w.width,
+		'height': w.height
+	})
+
 def find_windows(title):
 	"""Return list of dicts with left, top, width, height for each live window."""
 	rects = []
@@ -75,26 +83,13 @@ def find_windows(title):
 		for w in gw.getWindowsWithTitle(title):
 			if not w.visible or w.isMinimized:
 				continue
-			if any(r['left'] == w.left and r['top'] == w.top for r in rects):
-				continue
-			# skip top corner windows (windows bug)
-			if w.left <= 1 or w.top <= 1:
-				continue
-			rects.append({
-				'left':   w.left,
-				'top':    w.top,
-				'width':  w.width,
-				'height': w.height
-			})
+			append_window(rects, w)
 	elif SYSTEM_OS == 'darwin':
 		wc = WindowCapture(title)
 		if wc.window is not None:
-			rects.append({
-				'left':   wc.window_x,
-				'top':    wc.window_y,
-				'width':  wc.window_width,
-				'height': wc.window_height
-			})
+			w = wc.window
+			if not w.isMinimized:
+				append_window(rects, w)
 	return rects
 
 def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_title: str, output_prefix: str):
