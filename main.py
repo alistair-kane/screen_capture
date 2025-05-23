@@ -80,28 +80,48 @@ def append_window(rects, w):
 		'height': w.height
 	})
 
-def list_window_titles():
+
+def list_window_positions():
 	"""
-	Returns a list of tuples (hwnd, title) for all visible, non-empty top-level windows.
+	Enumerate all visible, titled top-level windows.
+	Returns a list of dicts with keys:
+		- hwnd  : window handle
+		- title : window title
+		- left, top, width, height
 	"""
 	windows = []
+
 	def _enum(hwnd, _):
 		if win32gui.IsWindowVisible(hwnd):
 			title = win32gui.GetWindowText(hwnd).strip()
 			if title:
-				windows.append((hwnd, title))
+				left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+				windows.append({
+					'hwnd':   hwnd,
+					'title':  title,
+					'left':   left,
+					'top':    top,
+					'width':  right - left,
+					'height': bottom - top
+				})
+
 	win32gui.EnumWindows(_enum, None)
 	return windows
 
 def resize_window(title, x, y, width, height):
-	hwnd = win32gui.FindWindow(None, title)
-	# windows = list_window_titles()
-	# for hwnd, t in windows:
-		# print(f"Window: {t} (HWND: {hwnd})")
-	if not hwnd:
+	# hwnd = win32gui.FindWindow(None, title)
+	windows = list_window_positions()
+	for w in windows:
+		if w['title'] == title and w['left'] == x and w['top'] == y:
+			selected_hwnd = w['hwnd']
+			title = w['title']
+			break
+
+	print(f"Window: {title} ({x}, {y}, {width}, {height})")
+	if not selected_hwnd:
 		raise ValueError(f"Window with title '{title}' not found")
 	win32gui.SetWindowPos(
-		hwnd, None,
+		selected_hwnd, None,
 		x, y, width, height,
 		win32con.SWP_NOZORDER | win32con.SWP_SHOWWINDOW
 	)
