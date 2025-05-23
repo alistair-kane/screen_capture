@@ -110,16 +110,16 @@ def list_window_positions():
 
 def resize_window(title, x, y, width, height):
 	# hwnd = win32gui.FindWindow(None, title)
+	selected_window = None
 	windows = list_window_positions()
 	for w in windows:
-		if w['title'] == title and w['left'] == x and w['top'] == y:
-			selected_hwnd = w['hwnd']
-			title = w['title']
+		if title in w['title'] and w['left'] == x and w['top'] == y:
+			selected_window = w
 			break
-
-	print(f"Window: {title} ({x}, {y}, {width}, {height})")
-	if not selected_hwnd:
+	if not selected_window:
 		raise ValueError(f"Window with title '{title}' not found")
+	print(f"Resizing window '{selected_window['title']}' to {width}x{height} at ({x}, {y})")
+	selected_hwnd = selected_window['hwnd']
 	win32gui.SetWindowPos(
 		selected_hwnd, None,
 		x, y, width, height,
