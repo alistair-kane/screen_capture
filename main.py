@@ -80,8 +80,24 @@ def append_window(rects, w):
 		'height': w.height
 	})
 
+def list_window_titles():
+	"""
+	Returns a list of tuples (hwnd, title) for all visible, non-empty top-level windows.
+	"""
+	windows = []
+	def _enum(hwnd, _):
+		if win32gui.IsWindowVisible(hwnd):
+			title = win32gui.GetWindowText(hwnd).strip()
+			if title:
+				windows.append((hwnd, title))
+	win32gui.EnumWindows(_enum, None)
+	return windows
+
 def resize_window(title, x, y, width, height):
 	hwnd = win32gui.FindWindow(None, title)
+	windows = list_window_titles()
+	for hwnd, t in windows:
+		print(f"Window: {t} (HWND: {hwnd})")
 	if not hwnd:
 		raise ValueError(f"Window with title '{title}' not found")
 	win32gui.SetWindowPos(
@@ -100,7 +116,7 @@ def find_windows(title):
 			append_window(rects, w)
 		for rect in rects:
 			if rect['width'] != EXPECTED_WIDTH or rect['height'] != EXPECTED_HEIGHT:
-				print(f"Resizing window {title} to {EXPECTED_WIDTH}x{EXPECTED_HEIGHT}")
+				print(f"Resizing window {title} from {rect['width']}x{rect['height']} to {EXPECTED_WIDTH}x{EXPECTED_HEIGHT}")
 				resize_window(title, rect['left'], rect['top'], EXPECTED_WIDTH, EXPECTED_HEIGHT)
 
 	elif SYSTEM_OS == 'darwin':
