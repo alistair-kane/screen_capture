@@ -95,9 +95,9 @@ def list_window_titles():
 
 def resize_window(title, x, y, width, height):
 	hwnd = win32gui.FindWindow(None, title)
-	windows = list_window_titles()
-	for hwnd, t in windows:
-		print(f"Window: {t} (HWND: {hwnd})")
+	# windows = list_window_titles()
+	# for hwnd, t in windows:
+		# print(f"Window: {t} (HWND: {hwnd})")
 	if not hwnd:
 		raise ValueError(f"Window with title '{title}' not found")
 	win32gui.SetWindowPos(
