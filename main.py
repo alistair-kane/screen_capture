@@ -11,15 +11,19 @@ import threading
 SYSTEM_OS        = sys.platform
 CAPTURE_FPS      = 60
 CAPTURE_INTERVAL = 1.0 / CAPTURE_FPS
+EXPECTED_WIDTH = 464
+EXPECTED_HEIGHT = 838
 
 if SYSTEM_OS == 'darwin':
 	from windowcapture import WindowCapture
 elif SYSTEM_OS == 'win32':
 	try:
 		import pygetwindow as gw
+		import win32gui
+		import win32con
 	except ImportError:
 		gw = None  # fallback to per-OS logic
-		raise RuntimeError("pygetwindow not available; please install it.")
+		raise RuntimeError("windows packages not available; please install")
 else:
 	raise RuntimeError("Unsupported OS. This script only supports macOS (darwin) and Windows (win32).")
 
@@ -76,6 +80,16 @@ def append_window(rects, w):
 		'height': w.height
 	})
 
+def resize_window(title, x, y, width, height):
+	hwnd = win32gui.FindWindow(None, title)
+	if not hwnd:
+		raise ValueError(f"Window with title '{title}' not found")
+	win32gui.SetWindowPos(
+		hwnd, None,
+		x, y, width, height,
+		win32con.SWP_NOZORDER | win32con.SWP_SHOWWINDOW
+	)
+
 def find_windows(title):
 	"""Return list of dicts with left, top, width, height for each live window."""
 	rects = []
@@ -84,6 +98,11 @@ def find_windows(title):
 			if not w.visible or w.isMinimized:
 				continue
 			append_window(rects, w)
+		for rect in rects:
+			if rect['width'] != EXPECTED_WIDTH or rect['height'] != EXPECTED_HEIGHT:
+				print(f"Resizing window {title} to {EXPECTED_WIDTH}x{EXPECTED_HEIGHT}")
+				resize_window(title, rect['left'], rect['top'], EXPECTED_WIDTH, EXPECTED_HEIGHT)
+
 	elif SYSTEM_OS == 'darwin':
 		wc = WindowCapture(title)
 		if wc.window is not None:
