@@ -109,7 +109,6 @@ def list_window_positions():
 	return windows
 
 def resize_window(title, x, y, width, height):
-	# hwnd = win32gui.FindWindow(None, title)
 	selected_window = None
 	windows = list_window_positions()
 	for w in windows:
@@ -138,6 +137,7 @@ def find_windows(title):
 			if rect['width'] != EXPECTED_WIDTH or rect['height'] != EXPECTED_HEIGHT:
 				print(f"Resizing window {title} from {rect['width']}x{rect['height']} to {EXPECTED_WIDTH}x{EXPECTED_HEIGHT}")
 				resize_window(title, rect['left'], rect['top'], EXPECTED_WIDTH, EXPECTED_HEIGHT)
+				time.sleep(0.25)  # give it a moment to resize
 
 	elif SYSTEM_OS == 'darwin':
 		wc = WindowCapture(title)
@@ -156,7 +156,7 @@ def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_tit
 		rects = find_windows(target_title)
 		overlay.update_regions(rects)
 		if rects:
-			for i,r in enumerate(rects):
+			for i, r in enumerate(rects):
 				w, h = r['width'], r['height']
 				rect = {'left': r['left'], 'top': r['top'], 'width': w, 'height': h}
 				# lazily initialize VideoWriter once we know size
