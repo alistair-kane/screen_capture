@@ -8,6 +8,8 @@ import sys
 import time
 import threading
 
+from update_files import update_file_names
+
 SYSTEM_OS        = sys.platform
 CAPTURE_FPS      = 60
 CAPTURE_INTERVAL = 1.0 / CAPTURE_FPS
@@ -185,6 +187,7 @@ def capture_loop(overlay: OverlayWindow, stop_event: threading.Event, target_tit
 		if video_writer is not None:
 			video_writer.release()
 			print("Recording finished and file closed.")
+	update_file_names(output_prefix)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Screen capture application.")
